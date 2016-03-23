@@ -1,0 +1,29 @@
+---
+title: "Regression Models Course Project"
+author: "SN de Koning"
+date: "23 maart 2016"
+output: html_document
+---
+The following report will detail the analysis performed for the Regression Models class for the Data Science Specialization at Coursera and the John Hopkins Institute of Public Healh. 
+Several analysis were performed on the base R dataset `mtcars` to answer the following to questions:
+
+1. “Is an automatic or manual transmission better for MPG”
+2. "Quantify the MPG difference between automatic and manual transmissions"
+
+```{r}
+# Loading in the data.
+data("mtcars")
+library(knitr)
+
+# Transforming the proper variables to factor variables. 
+cols <- c("cyl", "vs", "gear", "carb")
+mtcars[, cols] <- lapply(mtcars[, cols], as.factor)
+mtcars$am <- factor(mtcars$am, levels = c("0", "1"), labels = c("Automatic", "Manual"))
+```
+
+```{r}
+# Some exploratory analysis.
+
+kable(summary(mtcars))
+```
+
