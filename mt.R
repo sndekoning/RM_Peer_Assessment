@@ -1,3 +1,4 @@
+set.seed(23072016)
 # Loading in the data.
 data("mtcars")
 
@@ -17,11 +18,12 @@ pairs(mtcars, panel = function(x, y){
 
 # Testing for significant differences between MPG for TT
 shapiro.test(mtcars$mpg) # Assumption of normalcy holds
-t.test(mpg ~ am, data = mtcars)
+result <- t.test(mpg ~ am, data = mtcars)
 
 # Fitting a linear regression model.
 fit <- lm(mpg ~ am, data = mtcars)
 summary(fit)
 
-fitall <- lm(mpg ~ ., data = mtcars)
+fit.all <- lm(mpg ~ ., data = mtcars)
+fit.final <- step(fit.all, direction = "both")
 summary(fitall)

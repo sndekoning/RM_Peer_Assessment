@@ -4,13 +4,18 @@ author: "SN de Koning"
 date: "23 maart 2016"
 output: html_document
 ---
+
+### Summary
+
 The following report will detail the analysis performed for the Regression Models class for the Data Science Specialization at Coursera and the John Hopkins Institute of Public Healh. 
 Several analysis were performed on the base R dataset `mtcars` to answer the following to questions:
 
-1. “Is an automatic or manual transmission better for MPG”
+1. “Is an automatic or manual transmission better for Miles per Gallon (mpg)”
 2. "Quantify the MPG difference between automatic and manual transmissions"
 
+### Data Loading and Transformation.
 ```{r}
+set.seed(23072016)
 # Loading in the data.
 data("mtcars")
 library(knitr)
@@ -21,9 +26,77 @@ mtcars[, cols] <- lapply(mtcars[, cols], as.factor)
 mtcars$am <- factor(mtcars$am, levels = c("0", "1"), labels = c("Automatic", "Manual"))
 ```
 
-```{r}
-# Some exploratory analysis.
+### Data Exploration
 
+Below follows a summary of the data set with all the variables.
+
+```{r}
 kable(summary(mtcars))
+```
+
+A visual inspection of the boxplot of mpg suggests that a manual transmission gives an increase in mpg when compared to an automatic transmission (see figure I). To test if this difference is statistically significant, a students t-test was performed, after the confirmation of the assumption of normality by way of the Shapiro-Wilk test. 
+
+```{r}
+normal <- shapiro.test(mtcars$mpg)
+print(normal)
+```
+p > 0.05, so mpg was assumed to follow the normal distribution.
+
+
+```{r}
+result <- t.test(mpg ~ am, data = mtcars)
+print(result)
+```
+
+From the t.test we can see that `r result$p.value`, so we reject the null hypothesis at the 0.01 level in favor of the alternative hypothesis. From this was concluded that Manual Transmission has a better mpg than Automatic Transmission.
+
+### Linear Regression
+
+First a simple linear regression model was fitted between MPG and transmission type to determine the average change in mpg when switching between transmission types. This model disregards any other variables that might have any influence on the amount of change.
+
+```{r}
+fit <- lm(mpg ~ am, data = mtcars)
+summary(fit)
+```
+
+This model suggests that changing from Automatic Transmission to Manual Transmission increases mpg by 7.245. However a visual inspection of the pairs plot (figure II), it seems that there are variables that are highly correlated with each mpg. To create a better fit, the `step` method was used to create a better model with significant predictors
+
+```{r, results = "hide"}
+fit.all <- lm(mpg ~ ., data = mtcars)
+fit.final <- step(fit.all, direction = "both")
+```
+This method suggests that cyl, hp and wt as confounding variables and am as the indepentent variable.
+```{r}
+summary(fit.final)
+```
+
+The Adjusted R-squared is 0.8401 according to this summary, so 84.01% of variance can be explained by this model.
+With ANOVA can been seen that this final model is better (p < 0.001) than the model with just the am variable.
+
+```{r}
+anova(fit, fit.final)
+```
+
+
+### Diagnostics
+
+```{r}
+par(mfrow = c(2,2))
+plot(fit.final)
+```
+
+
+### Appendix
+
+```{r}
+boxplot(mpg ~ am, data = mtcars, main = "Figure I")
+```
+
+```{r}
+pairs(mtcars,
+      main = "Figure II",
+      panel = function(x, y){
+          points(x, y)
+          abline(lm(y~x), col = "red")})
 ```
 
