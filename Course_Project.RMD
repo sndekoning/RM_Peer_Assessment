@@ -14,13 +14,12 @@ Several analysis were performed on the base R data-set `mtcars` to answer the fo
 2. "Quantify the MPG difference between automatic and manual transmissions"
 
 ### Data Loading and Transformation.
-```{r}
+For the code see the appendix.
+```{r, echo=FALSE}
 set.seed(23072016)
-# Loading in the data.
 data("mtcars")
 library(knitr)
 
-# Transforming the proper variables to factor variables. 
 cols <- c("cyl", "vs", "gear", "carb")
 mtcars[, cols] <- lapply(mtcars[, cols], as.factor)
 mtcars$am <- factor(mtcars$am, levels = c("0", "1"), labels = c("Automatic", "Manual"))
@@ -28,64 +27,42 @@ mtcars$am <- factor(mtcars$am, levels = c("0", "1"), labels = c("Automatic", "Ma
 
 ### Data Exploration
 
-Below follows a summary of the data set with all the variables.
-
-```{r}
-kable(summary(mtcars))
-```
-
+The data set consists of `r dim(mtcars)[1]` observations and `r dim(mtcars)[2]` variables.
 A visual inspection of the box-plot of mpg suggests that a manual transmission gives an increase in mpg when compared to an automatic transmission (see figure I). To test if this difference is statistically significant, a students t-test was performed, after the confirmation of the assumption of normality by way of the Shapiro-Wilk test. 
-
-```{r}
+```{r, echo=FALSE}
 normal <- shapiro.test(mtcars$mpg)
 print(normal)
 ```
 p > 0.05, so mpg was assumed to follow the normal distribution.
-
-
-```{r}
+```{r, echo=FALSE}
 result <- t.test(mpg ~ am, data = mtcars)
-print(result)
 ```
+From the t.test we can see that *t*(`r floor(result$parameter)`) = `r round(result$statistic, 2)`, *p* < .001 , so we reject the null hypothesis in favor of the alternative hypothesis. From this was concluded that manual transmission has a better mpg than Automatic Transmission.
 
-From the t.test we can see that `r result$p.value`, so we reject the null hypothesis at the 0.01 level in favor of the alternative hypothesis. From this was concluded that manual transmission has a better mpg than Automatic Transmission.
-
-### Linear Regression
-
+### Regression
 First a simple linear regression model was fitted between MPG and transmission type to determine the average change in mpg when switching between transmission types. This model disregards any other variables that might have any influence on the amount of change.
-
-```{r}
+```{r, echo=FALSE}
 fit <- lm(mpg ~ am, data = mtcars)
-summary(fit)
+summary(fit)$coefficients
 ```
-
 This model suggests that changing from automatic transmission to manual transmission increases mpg by 7.245. However a visual inspection of the pairs plot (figure II), it seems that there are variables that are highly correlated with each mpg. To create a better fit, the `step` method was used to create a better model with significant predictors
 
-```{r, results = "hide"}
+```{r, echo=FALSE, results = "hide"}
 fit.all <- lm(mpg ~ ., data = mtcars)
 fit.final <- step(fit.all, direction = "both")
 ```
 This method suggests that cyl, hp and wt as confounding variables and am as the independent variable.
-```{r}
-summary(fit.final)
+```{r, echo=FALSE}
+summary(fit.final)$coefficients
 ```
-
 The Adjusted R-squared is 0.8401 according to this summary, so 84.01% of variance can be explained by this model.
 With ANOVA can been seen that this final model is better (p < 0.001) than the model with just the am variable.
-
-```{r}
+```{r, echo=FALSE}
 anova(fit, fit.final)
 ```
 
-
 ### Diagnostics
-
-```{r}
-par(mfrow = c(2,2))
-plot(fit.final)
-```
-
-From the plot the following observations can be made: 
+From the plot (figure III) the following observations can be made: 
 
 * In the Residuals vs Fitted plot there is no discernible pattern, so it can be assumed the variables are independent of each other. 
 * The points in the Normal Q-Q plot fall on a line, therefore it seems the residuals are normally distributed.
@@ -93,22 +70,59 @@ From the plot the following observations can be made:
 * In the Residuals vs Leverage plot there seems to be an outlier with higher leverage on the regression model, which could warrant further investigation. 
 
 ### Conclusions
-
 1. Manual transmission yield a higher mpg than automatic transmission.
 2. Disregarding other variables, switching from automatic to manual would yield an increase of 7.25 mpg.
 3. A better model includes the amount of cylinders, horsepower and weight, and means that a switch from automatic to manual transmission yields only an increase of 1.80 mpg.
 
+***
+
 ### Appendix
-
-```{r}
-boxplot(mpg ~ am, data = mtcars, main = "Figure I")
+*code*
 ```
-
-```{r}
+# Setting seed and loading data & dependencies
+set.seed(23072016)
+data("mtcars")
+library(knitr)
+# Transforming variables to factor, giving proper labels.
+cols <- c("cyl", "vs", "gear", "carb")
+mtcars[, cols] <- lapply(mtcars[, cols], as.factor)
+mtcars$am <- factor(mtcars$am, levels = c("0", "1"), labels = c("Automatic", "Manual"))
+# Testing for the assumption of normality
+normal <- shapiro.test(mtcars$mpg)
+# Studen t.test for difference in means.
+result <- t.test(mpg ~ am, data = mtcars)
+# Fitting a linear model between mpg as the dependent, and am as the independent variable
+fit <- lm(mpg ~ am, data = mtcars)
+summary(fit)$coefficients
+# Fitting a linear model between mpg as the dependent variable against all the other variables
+fit.all <- lm(mpg ~ ., data = mtcars)
+fit.final <- step(fit.all, direction = "both") # Using step method to determine which variables to include
+summary(fit.final)$coefficients
+# Testing the simple lm against the new multivariate lm
+anova(fit, fit.final)
+# Boxplot fig I
+boxplot(mpg ~ am, data = mtcars, main = "Figure I")
+#Pairsplot fig II
 pairs(mtcars,
       main = "Figure II",
       panel = function(x, y){
           points(x, y)
           abline(lm(y~x), col = "red")})
+# Residuals and Diagnostics plot fig III
+par(mfrow = c(2,2))
+plot(fit.final, main = "Figure III")
 ```
+```{r, echo=FALSE}
+boxplot(mpg ~ am, data = mtcars, main = "Figure I")
+
+pairs(mtcars,
+      main = "Figure II",
+      panel = function(x, y){
+          points(x, y)
+          abline(lm(y~x), col = "red")})
+
+par(mfrow = c(2,2))
+plot(fit.final, main = "Figure III")
+```
+
 
