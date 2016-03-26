@@ -2,13 +2,13 @@
 title: "Regression Models Course Project"
 author: "SN de Koning"
 date: "23 maart 2016"
-output: html_document
+output: pdf_document
 ---
 
 ### Summary
 
-The following report will detail the analysis performed for the Regression Models class for the Data Science Specialization at Coursera and the John Hopkins Institute of Public Healh. 
-Several analysis were performed on the base R dataset `mtcars` to answer the following to questions:
+The following report will detail the analysis performed for the Regression Models class for the Data Science Specialization at Coursera and the John Hopkins Institute of Public Health. 
+Several analysis were performed on the base R data-set `mtcars` to answer the following to questions:
 
 1. “Is an automatic or manual transmission better for Miles per Gallon (mpg)”
 2. "Quantify the MPG difference between automatic and manual transmissions"
@@ -34,7 +34,7 @@ Below follows a summary of the data set with all the variables.
 kable(summary(mtcars))
 ```
 
-A visual inspection of the boxplot of mpg suggests that a manual transmission gives an increase in mpg when compared to an automatic transmission (see figure I). To test if this difference is statistically significant, a students t-test was performed, after the confirmation of the assumption of normality by way of the Shapiro-Wilk test. 
+A visual inspection of the box-plot of mpg suggests that a manual transmission gives an increase in mpg when compared to an automatic transmission (see figure I). To test if this difference is statistically significant, a students t-test was performed, after the confirmation of the assumption of normality by way of the Shapiro-Wilk test. 
 
 ```{r}
 normal <- shapiro.test(mtcars$mpg)
@@ -48,7 +48,7 @@ result <- t.test(mpg ~ am, data = mtcars)
 print(result)
 ```
 
-From the t.test we can see that `r result$p.value`, so we reject the null hypothesis at the 0.01 level in favor of the alternative hypothesis. From this was concluded that Manual Transmission has a better mpg than Automatic Transmission.
+From the t.test we can see that `r result$p.value`, so we reject the null hypothesis at the 0.01 level in favor of the alternative hypothesis. From this was concluded that manual transmission has a better mpg than Automatic Transmission.
 
 ### Linear Regression
 
@@ -59,13 +59,13 @@ fit <- lm(mpg ~ am, data = mtcars)
 summary(fit)
 ```
 
-This model suggests that changing from Automatic Transmission to Manual Transmission increases mpg by 7.245. However a visual inspection of the pairs plot (figure II), it seems that there are variables that are highly correlated with each mpg. To create a better fit, the `step` method was used to create a better model with significant predictors
+This model suggests that changing from automatic transmission to manual transmission increases mpg by 7.245. However a visual inspection of the pairs plot (figure II), it seems that there are variables that are highly correlated with each mpg. To create a better fit, the `step` method was used to create a better model with significant predictors
 
 ```{r, results = "hide"}
 fit.all <- lm(mpg ~ ., data = mtcars)
 fit.final <- step(fit.all, direction = "both")
 ```
-This method suggests that cyl, hp and wt as confounding variables and am as the indepentent variable.
+This method suggests that cyl, hp and wt as confounding variables and am as the independent variable.
 ```{r}
 summary(fit.final)
 ```
@@ -85,6 +85,18 @@ par(mfrow = c(2,2))
 plot(fit.final)
 ```
 
+From the plot the following observations can be made: 
+
+* In the Residuals vs Fitted plot there is no discernible pattern, so it can be assumed the variables are independent of each other. 
+* The points in the Normal Q-Q plot fall on a line, therefore it seems the residuals are normally distributed.
+* From the Scale-Location plot there is no suggestion of heteroscedasticity, meaning the variance is constant. 
+* In the Residuals vs Leverage plot there seems to be an outlier with higher leverage on the regression model, which could warrant further investigation. 
+
+### Conclusions
+
+1. Manual transmission yield a higher mpg than automatic transmission.
+2. Disregarding other variables, switching from automatic to manual would yield an increase of 7.25 mpg.
+3. A better model includes the amount of cylinders, horsepower and weight, and means that a switch from automatic to manual transmission yields only an increase of 1.80 mpg.
 
 ### Appendix
 
